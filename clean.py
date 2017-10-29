@@ -12,7 +12,7 @@ def create_final_datasets():
     ''' Munge the datasets
     '''
     create_wine_dataset()
-    create_credit_card_dataset()
+    create_political_party_dataset()
     
 def create_wine_dataset():
     '''Create the final wine dataset
@@ -32,20 +32,33 @@ def create_wine_dataset():
     logger.info('Writing final wine csv to ./data/wine-red-white-final.csv')
     wine_final.to_csv('./data/wine-red-white-final.csv', index=False)
 
-def create_credit_card_dataset():
-    '''Create the final credit card dataset
+def create_political_party_dataset():
+    '''Create the final political party dataset
     '''
-    logger.info('Cleaning credit card dataset')
-    credit_card = pd.read_csv('./data/credit-card-original.csv', skiprows=1)
-    # drop dummy header
-    credit_card = credit_card.drop('ID', axis=1)
-    logger.info('Dropped unnecessary information')
-    credit_card.columns = map(str.lower, credit_card.columns)
-    credit_card.columns = ['_'.join(col.split(' ')) for col in credit_card.columns]
-    logger.info('Initial credit card information \n %s', credit_card.describe())
-    logger.info('Sampling down to 10%')
-    credit_card = credit_card.groupby('default_payment_next_month')
-    credit_card = credit_card.apply(pd.DataFrame.sample, frac=0.1, random_state=0).reset_index(drop=True)
-    logger.info('Final credit card information \n %s', credit_card.describe(include='all'))
-    logger.info('Writing final credit card csv to ./data/credit-card-final.csv')
-    credit_card.to_csv('./data/credit-card-final.csv', index=False)
+    logger.info('Cleaning political party dataset')
+    votes = pd.read_csv('./data/house-votes-84.data')
+    votes.columns = ['party', 'handicapped', 'water', 'adoption_budget', 'physician', 'el_salavador', 'religious', 
+      'anti_satellite', 'nicaraguan', 'mx_missile', 'immigration', 'synfuels', 'education', 'superfund', 'crime', 'duty_free', 'export']
+    def numbers_cols(row):
+        final_row = []
+        for col in votes.columns:
+            col_val = row[col]
+            if col == 'party':
+                if col_val == 'republican':
+                    final_row.append(0)
+                else:
+                    final_row.append(1)
+            elif col_val == 'y':
+                final_row.append(1)
+            elif col_val == 'n':
+                final_row.append(-1)
+            else:
+                final_row.append(0)
+        return final_row
+    votes = votes.apply(numbers_cols, axis=1)
+    votes = votes.reindex_axis(['handicapped', 'water', 'adoption_budget', 'physician', 'el_salavador', 'religious', 
+      'anti_satellite', 'nicaraguan', 'mx_missile', 'immigration', 'synfuels', 'education', 'superfund', 'crime', 'duty_free', 'export', 'party'], axis=1)
+    logger.info('Final political party information \n %s repub = %s dem = %s', votes.describe(include='all'), 
+      (votes['party'] == 0).sum(), (votes['party'] == 1).sum())
+    logger.info('Writing political party csv to ./data/political-party-final.csv')
+    votes.to_csv('./data/political-party-final.csv', index=False)

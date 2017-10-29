@@ -32,9 +32,9 @@ def load_dataset(dataset='wine'):
 if __name__ == '__main__':
     # parse here
     parser = argparse.ArgumentParser(prog='main.py')
-    parser.add_argument('-d', '--dataset', help='Which dataset to run on', choices=['wine', 'credit_card'], default='wine')
+    parser.add_argument('-d', '--dataset', help='dataset to use', choices=['wine', 'vote'], default='wine')
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
-    cleaner_parser = subparsers.add_parser('clean', help='Clean the stats from original to final and show me information')
+    cleaner_parser = subparsers.add_parser('clean', help='clean the stats from original to final')
     args = parser.parse_args()
 
     # print something out!
@@ -46,15 +46,15 @@ if __name__ == '__main__':
     if command == 'clean':
         log.info('Cleaning datasets')  
         clean.create_final_datasets()
-
-    path = './results/{}/{}'.format(args.dataset, command)
-    if not os.path.exists(path):
-        log.info('Making results directory')
-        os.makedirs(path)
-    
-    if command != 'clean':
-        classifications, attributes = load_dataset(args.dataset)
-        log.info('Running %s', command)
-        args.classifications = classifications
-        args.attributes = attributes
-        CLASSIFIERS[command](**vars(args)).run()        
+    else:
+        path = './results/{}/{}'.format(args.dataset, command)
+        if not os.path.exists(path):
+            log.info('Making results directory')
+            os.makedirs(path)
+        
+        if command != 'clean':
+            classifications, attributes = load_dataset(args.dataset)
+            log.info('Running %s', command)
+            args.classifications = classifications
+            args.attributes = attributes
+            CLASSIFIERS[command](**vars(args)).run()        
