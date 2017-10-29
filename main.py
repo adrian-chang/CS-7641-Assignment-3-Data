@@ -5,36 +5,22 @@ The driver to the entire assignment
 import argparse
 import clean
 import logging
-import pandas as pd
-import os
+from experiment_1 import Experiment_1
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-def load_dataset(dataset='wine'):
-    '''Load a dataset
-    '''
-    if dataset == 'wine':
-        log.info('Exploring wine dataset')
-        dataset = pd.read_csv('./data/wine-red-white-final.csv')
-        class_target = 'red'
-        classifications = dataset[class_target]
-        attributes = dataset.drop(class_target, axis=1)
-    else:
-        log.info('Exploring credit card dataset')
-        dataset = pd.read_csv('./data/credit-card-final.csv')
-        class_target = 'default_payment_next_month'
-        classifications = dataset[class_target]
-        attributes = dataset.drop(class_target, axis=1)
-
-    return classifications.as_matrix(), attributes.as_matrix()
+EXPERIMENT = {
+  'experiment-1': Experiment_1
+}
 
 if __name__ == '__main__':
     # parse here
     parser = argparse.ArgumentParser(prog='main.py')
-    parser.add_argument('-d', '--dataset', help='dataset to use', choices=['wine', 'vote'], default='wine')
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
-    cleaner_parser = subparsers.add_parser('clean', help='clean the stats from original to final')
+    subparsers.add_parser('clean', help='clean the stats from original to final')
+    subparsers.add_parser('experiment-1', help='run expierment 1 (clustering)')
+    subparsers.add_parser('experiment-2', help='run expierment 2 (dimensonality-reduction)')
     args = parser.parse_args()
 
     # print something out!
@@ -47,14 +33,5 @@ if __name__ == '__main__':
         log.info('Cleaning datasets')  
         clean.create_final_datasets()
     else:
-        path = './results/{}/{}'.format(args.dataset, command)
-        if not os.path.exists(path):
-            log.info('Making results directory')
-            os.makedirs(path)
-        
-        if command != 'clean':
-            classifications, attributes = load_dataset(args.dataset)
-            log.info('Running %s', command)
-            args.classifications = classifications
-            args.attributes = attributes
-            CLASSIFIERS[command](**vars(args)).run()        
+        log.info('Running %s', command)
+        EXPERIMENT[command]().run()        
